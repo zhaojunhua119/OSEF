@@ -40,7 +40,7 @@ util: $(GEN) $(DUMP)
 
 $(PROG): $(SRC)
 	@printf "%b" "Compiling ... $(COM_COLOR) [$<] -> $@\t\t$(NO_COLOR)"
-	@gcc -Werror -Wall -o $@ $< && \
+	@gcc -Werror -Wall -g -o $@ $< && \
 	  echo $(OK_STRING) || echo $(FAILED_STRING)
 
 
