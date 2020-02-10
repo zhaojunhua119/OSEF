@@ -1,0 +1,9 @@
+cp temp1/f1.txt              temp2/
+mv temp1/f2.c                           temp2/
+cp temp1/f3.txt                temp2/
+cp temp1/f4.txt                temp2/
+cp temp1/f5.txt                temp2/
+cp temp1/f6.txt                 temp2/
+mv temp1/f7.c                   temp1/f8.c
+mv temp1/f9.c                   temp2/
+cp temp1/f1.txt              temp1/f1a.txt
