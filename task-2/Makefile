@@ -20,7 +20,7 @@ all: build
 build: $(PROG) 
 
 $(PROG): $(SRC)
-	gcc -Werror -Wall -o $@ $<
+	gcc -Werror -Wall -g -o $@ $<
 
 test: clean build $(PROG) $(IN) $(EX)
 	./$(PROG) $(IN) $(OUT)
