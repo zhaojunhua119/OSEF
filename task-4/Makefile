@@ -36,7 +36,7 @@ build: $(PROG)
 
 
 $(PROG): $(SRC)
-	@printf "%b" "Building ... $(COM_COLOR)gcc -Wall -o $@ $<\t\t$(NO_COLOR)"
+	@printf "%b" "Building ... $(COM_COLOR)gcc -Wall -g -o $@ $<\t\t$(NO_COLOR)"
 	@gcc -Werror -Wall -o $@ $< && \
 	  echo $(OK_STRING) || echo $(FAILED_STRING)
 
