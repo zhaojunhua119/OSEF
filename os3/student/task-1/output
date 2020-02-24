@@ -1,0 +1,18 @@
+total 92
+drwxrwxr-x 4 zhahua zhahua  4096 Feb 23 22:30 .
+drwxrwxr-x 3 zhahua zhahua  4096 Feb 23 21:55 ..
+-rw-rw-r-- 1 zhahua zhahua  4863 Feb 23 22:03 .cproject
+-rw-rw-r-- 1 zhahua zhahua  4069 Feb 23 21:55 Makefile
+-rwx------ 1 zhahua zhahua     0 Feb 23 22:33 output
+-rw-rw-r-- 1 zhahua zhahua   809 Feb 23 21:55 .project
+-rw-rw-r-- 1 zhahua zhahua  2745 Feb 23 21:55 README.md
+drwxrwxr-x 2 zhahua zhahua  4096 Feb 23 22:03 .settings
+-rw-rw-r-- 1 zhahua zhahua   177 Feb 23 21:55 test-error.ex
+-rw-rw-r-- 1 zhahua zhahua    30 Feb 23 21:55 test-error.in
+-rw-rw-r-- 1 zhahua zhahua   447 Feb 23 21:55 test-io.ex
+-rw-rw-r-- 1 zhahua zhahua    56 Feb 23 21:55 test-io.in
+-rw-rw-r-- 1 zhahua zhahua   321 Feb 23 21:55 test-simple.ex
+-rw-rw-r-- 1 zhahua zhahua    94 Feb 23 21:55 test-simple.in
+-rw-rw-r-- 1 zhahua zhahua  9292 Feb 23 22:29 tinyshell.c
+-rwxrwxr-x 1 zhahua zhahua 17192 Feb 23 22:29 tshell
+drwxrwxr-x 3 zhahua zhahua  4096 Feb 23 21:55 tshell.dSYM

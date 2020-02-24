@@ -19,6 +19,8 @@
 #include <sys/wait.h>
 
 #define LINESZ 1024 // Maximum number of characters in an input string
+#define SUCCESS 0
+#define PATH_MAX 1024
 
 //========== MARCO for Printing error messages ================
 // Simply prints an error message
@@ -46,7 +48,6 @@
   } while (0)
 //---------------------------------------------
 
-#define SUCCESS 0
 
 // Command data structure: 
 // After parsing a given input string, this data structure
@@ -203,27 +204,43 @@ unsigned char process_builtin_commands(cmd_string *C)
 {
   if (strcmp(C->cmd, "cd") == 0)
   {
-      printf("%d", C->arg_count);
     if (C->arg_count == 1)
     {
       char *home = getenv("HOME");
 
       if (NULL == home)
+      {
         PRINT_ERROR_SYSCALL("getenv");
+        return (unsigned char)1;
+      }
       if (SUCCESS != chdir(home))
+      {
         PRINT_ERROR_SYSCALL("chdir");
+        return (unsigned char)1;
+      }
+      return (unsigned char)1;
     } else if (C->arg_count == 2) {
-      if (SUCCESS != chdir(C->args[0]))
+      if (SUCCESS != chdir(C->args[1]))
+      {
         PRINT_ERROR_SYSCALL("chdir");
+        return (unsigned char)1;
+      }
+      return (unsigned char)1;
     } else
+    {
       PRINT_ERROR;
-    return (unsigned char)1;
+      return (unsigned char)1;
+    }
   }
   else if (strcmp(C->cmd, "pwd") == 0)
   {
-    /* << YOUR CODE GOES HERE >> */
-    // YCGH: Write code for processing the command
-  
+  	char cwd[PATH_MAX];
+    if (NULL == getcwd(cwd, sizeof(cwd)))
+    {
+    	PRINT_ERROR_SYSCALL("getcwd");
+      return (unsigned char)1;
+    }
+    printf("%s\n", cwd);
     return (unsigned char)1;
   }
   else
@@ -320,7 +337,13 @@ int main(int argc, char *argv[])
          *
          * Also handle error using PRINT_ERROR_SYSCALL().
          */
-
+				close(STDOUT_FILENO);
+				int ret = open(C.ofile, O_CREAT|O_WRONLY|O_TRUNC, S_IRWXU);
+				if (-1 == ret)
+				{
+					PRINT_ERROR_SYSCALL("open");
+					return EXIT_FAILURE;
+				}
       }
 
 
@@ -330,6 +353,10 @@ int main(int argc, char *argv[])
        * if execvp() fails
        */
 
+      if (-1 == execvp(C.cmd, C.args))
+      {
+      	PRINT_ERROR_SYSCALL("execvp");
+      }
       
 
       // if execvp() succeeds, child never executes the following
@@ -351,8 +378,12 @@ int main(int argc, char *argv[])
         // YCGH: Make the parent wait using waitpid().
         // Don't forget to check error for `waitpid()` syscall
         // using PRINT_ERROR_SYSCALL("waitpid");
-
-
+      	int stat;
+      	pid_t cpid = waitpid(fc, &stat, 0);
+      	if (-1 == cpid)
+				{
+      		PRINT_ERROR_SYSCALL("waitpid");
+				}
       }
     }
   }
