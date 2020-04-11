@@ -31,8 +31,7 @@ int strUser2Kernel(char* src, char* dst, int size) {
 	int virtAddr = (int)src;
 	int data;
 	for (int i = 0; i < size; i++) {
-		if (!kernel->machine->ReadMem(virtAddr, sizeof(char), &data))//try twice
-			if (!kernel->machine->ReadMem(virtAddr, sizeof(char), &data))
+		if (!kernel->machine->ReadMem(virtAddr, sizeof(char), &data))
 				return -1;
 		dst[i] = (char)data;
 		virtAddr++;
@@ -46,12 +45,10 @@ int strKernel2User(char* src, char* dst, int size) {
 	int virtAddr = (int)dst;
 	for (int i = 0; i < size; i++) {
 		if (!kernel->machine->WriteMem(virtAddr, sizeof(char), src[i]))
-			if (!kernel->machine->WriteMem(virtAddr, sizeof(char), src[i]))
 				return -1;
 		virtAddr++;
 	}
 	if (!kernel->machine->WriteMem(virtAddr, sizeof(char), '\0'))
-		if (!kernel->machine->WriteMem(virtAddr, sizeof(char), '\0'))
 			return -1;
 	return 0;
 }
@@ -168,7 +165,7 @@ ExceptionHandler(ExceptionType which)
                         	// read {size} characters into buffer
                         	for (int i = 0; i < size; ++i) {
 
-                        		c = kernel->synchConsoleIn->GetChar();
+                        		c = '\n';//kernel->synchConsoleIn->GetChar();
                         		str[i] = c;
                         	}
 
@@ -200,8 +197,21 @@ ExceptionHandler(ExceptionType which)
         }
         case SC_Exit:
                 //kernel->currentThread->exitStatus = (int)machine->ReadRegister(4);
+                returnSyscall(0);
                 kernel->currentThread->Finish();
                 return;
+        case SC_ThreadFork:
+          Thread *parent = kernel->currentThread;
+          Thread *child = new Thread(parent->name);
+          child->space=new AddrSpace(parent->space);
+          kernel->machine->WriteRegister(2,child->pid);
+          parent->SaveUserState();
+
+          kernel->machine->WriteRegister(2,0);
+          child->Fork((VoidFunctionPtr)(kernel->machine->ReadRegister(NextPCReg)),(void*)(kernel->machine->ReadRegister(StackReg)));
+
+          return;
+
       default:
 	cerr << "Unexpected system call " << type << "\n";
 	break;

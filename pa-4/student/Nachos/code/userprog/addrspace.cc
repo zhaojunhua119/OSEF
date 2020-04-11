@@ -57,6 +57,8 @@ SwapHeader (NoffHeader *noffH)
 #endif
 }
 
+int totalPages=0;
+
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
 // 	Create an address space to run a user program.
@@ -177,6 +179,7 @@ AddrSpace::Load(char *fileName)
 #endif
 
     delete executable;			// close file
+    totalPages=totalPages+numPages;
     return TRUE;			// success
 }
 
@@ -341,7 +344,40 @@ AddrSpace::getPageEntry(int pageFaultPhysicalNum) {
 
 //your code goes here to add something into the copy constructor//
 AddrSpace::AddrSpace(const AddrSpace& copiedItem) { // copy constructor
-	
+  unsigned int size,i,j;
+  numPages=copiedItem.numPages;
+  size=numPages*PageSize;
+  ASSERT(numPages + copiedItem.numPages <= NumPhysPages);      // check we're not trying
+                      // to run anything too big --
+                      // at least until we have
+                      // virtual memory
+  DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+                  numPages, size);
+
+// first, set up the translation
+  pageTable = new TranslationEntry[numPages];
+ // printf("pageTable created\n");
+  for (i = 0; i < numPages; i++) {
+    pageTable[i].virtualPage = i;   // for now, virtual page # = phys page #
+    pageTable[i].physicalPage = i+totalPages;
+    pageTable[i].valid = TRUE;
+    pageTable[i].use = FALSE;
+    pageTable[i].dirty = FALSE;
+    pageTable[i].readOnly = FALSE;  // if the code segment was entirely on
+                    // a separate page, we could set its
+                    // pages to be read-only
+  }
+  //printf("pageTable setup is complete\n");
+  //unsigned int i,j;
+  unsigned int parentStartPhysPage = copiedItem.pageTable[0];
+  i=parentStartPhysPage*PageSize;
+  j=totalPages*PageSize;
+  while(i<((parentStartPhysPage+numPages)*PageSize)){
+      kernel->machine->mainMemory[j]=kernel->machine->mainMemory[i];
+      j++; i++;
+  }
+  totalPages=totalPages+numPages;
+  //printf("finally, done with addrmanispace\n");
 }
 
 int
