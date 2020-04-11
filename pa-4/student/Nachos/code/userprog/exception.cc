@@ -26,6 +26,7 @@
 #include "syscall.h"
 #include "ksyscall.h"
 #include "synchconsole.h"
+#include "addrspace.h"
 
 int strUser2Kernel(char* src, char* dst, int size) {
 	int virtAddr = (int)src;
@@ -69,7 +70,17 @@ void returnSyscall(int arg) {
           kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
         }
 }
+void UserThreadStart(int func) {
+  //printf("##New user level thread starts\n");
+  //kernel->currentThread->space->InitRegisters();
+  kernel->currentThread->RestoreUserState();
+  kernel->currentThread->space->RestoreState();   // load page table register
+  //kernel->machine->WriteRegister(PCReg, func);
+  //kernel->machine->WriteRegister(NextPCReg, func+4);
 
+  kernel->machine->Run();     // jump to the user program
+  ASSERT(FALSE);
+}
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -165,7 +176,7 @@ ExceptionHandler(ExceptionType which)
                         	// read {size} characters into buffer
                         	for (int i = 0; i < size; ++i) {
 
-                        		c = '\n';//kernel->synchConsoleIn->GetChar();
+                        		c = kernel->synchConsoleIn->GetChar();
                         		str[i] = c;
                         	}
 
@@ -200,18 +211,31 @@ ExceptionHandler(ExceptionType which)
                 returnSyscall(0);
                 kernel->currentThread->Finish();
                 return;
-        case SC_ThreadFork:
-          Thread *parent = kernel->currentThread;
-          Thread *child = new Thread(parent->name);
-          child->space=new AddrSpace(parent->space);
-          kernel->machine->WriteRegister(2,child->pid);
-          parent->SaveUserState();
+        case SC_SysFork:
+          {
+            Thread *parent = kernel->currentThread;
+            Thread *child = new Thread(parent->getName());
+            child->space=new AddrSpace(*parent->space);
+            kernel->machine->WriteRegister(2,child->pid);
 
-          kernel->machine->WriteRegister(2,0);
-          child->Fork((VoidFunctionPtr)(kernel->machine->ReadRegister(NextPCReg)),(void*)(kernel->machine->ReadRegister(StackReg)));
+           /* set previous programm counter (debugging only)*/
+           kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 
-          return;
+           /* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+           kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
 
+           /* set next programm counter for brach execution */
+           kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+
+            parent->SaveUserState();
+            child->SaveUserState();
+
+            kernel->machine->WriteRegister(2,0);
+            void *arg = (void*)kernel->machine->ReadRegister(PCReg);
+            child->Fork((VoidFunctionPtr)UserThreadStart,arg);
+
+            return;
+          }
       default:
 	cerr << "Unexpected system call " << type << "\n";
 	break;

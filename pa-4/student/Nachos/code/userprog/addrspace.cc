@@ -351,8 +351,8 @@ AddrSpace::AddrSpace(const AddrSpace& copiedItem) { // copy constructor
                       // to run anything too big --
                       // at least until we have
                       // virtual memory
-  DEBUG('a', "Initializing address space, num pages %d, size %d\n",
-                  numPages, size);
+//  DEBUG('a', "Initializing address space, num pages %d, size %d\n",
+//                  numPages, size);
 
 // first, set up the translation
   pageTable = new TranslationEntry[numPages];
@@ -369,7 +369,7 @@ AddrSpace::AddrSpace(const AddrSpace& copiedItem) { // copy constructor
   }
   //printf("pageTable setup is complete\n");
   //unsigned int i,j;
-  unsigned int parentStartPhysPage = copiedItem.pageTable[0];
+  unsigned int parentStartPhysPage = copiedItem.pageTable[0].physicalPage;
   i=parentStartPhysPage*PageSize;
   j=totalPages*PageSize;
   while(i<((parentStartPhysPage+numPages)*PageSize)){

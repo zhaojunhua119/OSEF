@@ -42,6 +42,7 @@ class AddrSpace {
     TranslationEntry* getPageEntry(int pageFaultPhysicalNum);
     int getNumPage();
     TranslationEntry* getPageTable();
+    void InitRegisters();   // Initialize user-level CPU registers,
 
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
@@ -49,8 +50,7 @@ class AddrSpace {
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
 
-    void InitRegisters();		// Initialize user-level CPU registers,
-					// before jumping to user code
+    					// before jumping to user code
 
 };
 
