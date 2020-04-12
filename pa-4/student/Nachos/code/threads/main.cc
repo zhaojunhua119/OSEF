@@ -179,7 +179,7 @@ MultiRunUserProg(void *filename) {
         child->space = space;
         ASSERT(space != (AddrSpace *)NULL);
 
-        void *arg = (void*)filename;
+        void *arg = (void*)strdup(filename_char);
         DEBUG(dbgThread, "running prog " << filename_char);
         child->Fork((VoidFunctionPtr)ExecUserThreadStart,arg);
         filename_char += MAX_PATH;

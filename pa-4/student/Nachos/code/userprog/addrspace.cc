@@ -58,7 +58,6 @@ SwapHeader (NoffHeader *noffH)
 #endif
 }
 
-int totalPages=0;
 
 //----------------------------------------------------------------------
 // AddrSpace::AddrSpace
@@ -171,7 +170,6 @@ AddrSpace::Load(char *fileName)
 		pageTable[i].readOnly = FALSE;
 	}
 	this->RestoreState();
-	char buffer = '\0';
 // then, copy in the code and data segments into memory
 // Note: this code assumes that virtual address = physical address
     if (noffH.code.size > 0) {
@@ -356,23 +354,32 @@ AddrSpace::getPageEntry(int pageFaultPhysicalNum) {
 }
 
 //your code goes here to add something into the copy constructor//
-AddrSpace::AddrSpace(const AddrSpace& copiedItem) { // copy constructor
+AddrSpace::AddrSpace(const AddrSpace& copiedItem, int newpid) { // copy constructor
   unsigned int size,i,j;
   numPages=copiedItem.numPages;
   size=numPages*PageSize;
+  pid = newpid;
   ASSERT(numPages + copiedItem.numPages <= NumPhysPages);      // check we're not trying
                       // to run anything too big --
                       // at least until we have
                       // virtual memory
 //  DEBUG('a', "Initializing address space, num pages %d, size %d\n",
 //                  numPages, size);
-  backingstore = new BackingStore(this, numPages, kernel->currentThread->pid);
+  backingstore = new BackingStore(this, numPages, pid);
 // first, set up the translation
   pageTable = new TranslationEntry[numPages];
- // printf("pageTable created\n");
+
+  char *buffer = new char[size];
+
+  int value = 0;
+  for (int offset = 0; offset < size; offset++) {
+      if (!kernel->machine->ReadMem(offset, 1, &value))
+          kernel->machine->ReadMem(offset, 1, &value);
+      buffer[offset] = (char)value;
+  }
   for (i = 0; i < numPages; i++) {
     pageTable[i].virtualPage = i;   // for now, virtual page # = phys page #
-    pageTable[i].physicalPage = i+totalPages;
+    pageTable[i].physicalPage = kernel->mm->AllocPage(this, i);
     pageTable[i].valid = TRUE;
     pageTable[i].use = FALSE;
     pageTable[i].dirty = FALSE;
@@ -382,15 +389,18 @@ AddrSpace::AddrSpace(const AddrSpace& copiedItem) { // copy constructor
   }
   //printf("pageTable setup is complete\n");
   //unsigned int i,j;
-  unsigned int parentStartPhysPage = copiedItem.pageTable[0].physicalPage;
-  i=parentStartPhysPage*PageSize;
-  j=totalPages*PageSize;
-  while(i<((parentStartPhysPage+numPages)*PageSize)){
-      kernel->machine->mainMemory[j]=kernel->machine->mainMemory[i];
-      j++; i++;
+
+
+
+  DEBUG(dbgDisk, "Copy Segment vpn = [" << 0 << "," <<size / PageSize << "] ppid=" << copiedItem.pid <<" cpid=" << pid);
+
+  this->RestoreState();
+
+  for (int offset = 0; offset < size; offset++) {
+      if (!kernel->machine->WriteMem(offset, 1, buffer[offset]))
+        kernel->machine->WriteMem(offset, 1, buffer[offset]);
   }
-  totalPages=totalPages+numPages;
-  //printf("finally, done with addrmanispace\n");
+  delete[] buffer;
 }
 
 int

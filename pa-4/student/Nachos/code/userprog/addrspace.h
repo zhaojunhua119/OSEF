@@ -21,7 +21,7 @@ typedef struct segment Segment;
 class AddrSpace {
   public:
     AddrSpace();			// Create an address space.
-    AddrSpace(const AddrSpace& copiedItem); // copy constructor
+    AddrSpace(const AddrSpace& copiedItem, int newpid); // copy constructor
     ~AddrSpace();			// De-allocate an address space
 
     bool Load(char *fileName);		// Load a program into addr space from

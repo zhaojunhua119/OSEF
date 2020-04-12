@@ -235,7 +235,8 @@ ExceptionHandler(ExceptionType which)
             char childname[256] = {};
             sprintf(childname, "%s-forked-%d", parent->getName(), kernel->ThreadId + 1);
             Thread *child = new Thread(strdup(childname));
-            child->space=new AddrSpace(*parent->space);
+            child->space=new AddrSpace(*parent->space, child->pid);
+            child->space->pid = child->pid;
             kernel->machine->WriteRegister(2,child->pid);
 
            /* set previous programm counter (debugging only)*/

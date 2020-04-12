@@ -16,7 +16,7 @@
 // The following class defines the scheduler/dispatcher abstraction -- 
 // the data structures and operations needed to keep track of which 
 // thread is running, and which threads are ready but not running.
-
+class Lock;
 class Scheduler {
   public:
     Scheduler();		// Initialize list of ready threads 
@@ -33,7 +33,6 @@ class Scheduler {
     void Print();		// Print contents of ready list
     
     // SelfTest for scheduler is implemented in class Thread
-    
   private:
     List<Thread *> *readyList;  // queue of threads that are ready to run,
 				// but not running

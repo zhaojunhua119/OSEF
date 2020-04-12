@@ -169,8 +169,8 @@ void
 Scheduler::CheckToBeDestroyed()
 {
     if (toBeDestroyed != NULL) {
+        toBeDestroyed = NULL;
         delete toBeDestroyed;
-	toBeDestroyed = NULL;
     }
 }
  
