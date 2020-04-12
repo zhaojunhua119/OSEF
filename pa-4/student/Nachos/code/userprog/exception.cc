@@ -225,7 +225,10 @@ ExceptionHandler(ExceptionType which)
         case SC_SysFork:
           {
             Thread *parent = kernel->currentThread;
-            Thread *child = new Thread(parent->getName());
+
+            char childname[256] = {};
+            sprintf(childname, "%s-forked-%d", parent->getName(), kernel->ThreadId + 1);
+            Thread *child = new Thread(strdup(childname));
             child->space=new AddrSpace(*parent->space);
             kernel->machine->WriteRegister(2,child->pid);
 

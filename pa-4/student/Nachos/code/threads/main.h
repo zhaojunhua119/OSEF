@@ -15,5 +15,7 @@
 extern Kernel *kernel;
 extern Debug *debug;
 
+#define MAX_PROG 100
+#define MAX_PATH 255
 #endif // MAIN_H
 

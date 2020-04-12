@@ -11,6 +11,8 @@
 #include "debug.h"
 #include "stats.h"
 
+
+int TimerTicks =   100;
 //----------------------------------------------------------------------
 // Statistics::Statistics
 // 	Initialize performance metrics to zero, at system startup.

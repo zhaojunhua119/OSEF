@@ -45,13 +45,13 @@
 #include "filesys.h"
 #include "openfile.h"
 #include "sysdep.h"
-
+#include "stats.h"
 // global variables
 Kernel *kernel;
 Debug *debug;
 
 extern void ThreadTest(void);
-
+extern void ExecUserThreadStart(int filename);
 //----------------------------------------------------------------------
 // Cleanup
 //	Delete kernel data structures; called when user hits "ctl-C".
@@ -163,6 +163,28 @@ RunUserProg(void *filename) {
     ASSERTNOTREACHED();
 }
 
+//----------------------------------------------------------------------
+// MultiRunUserProg
+//      Run the user program in the given file. multiple
+//----------------------------------------------------------------------
+
+void
+MultiRunUserProg(void *filename) {
+    char* filename_char = (char*)filename;
+    while (*filename_char != '\0') {
+        char tname[256] = {};
+        sprintf(tname, "%s-exec-%d", filename_char, kernel->ThreadId + 1);
+        Thread *child = new Thread(strdup((char*)tname));
+        AddrSpace *space = new AddrSpace;
+        child->space = space;
+        ASSERT(space != (AddrSpace *)NULL);
+
+        void *arg = (void*)filename;
+        DEBUG(dbgThread, "running prog " << filename_char);
+        child->Fork((VoidFunctionPtr)ExecUserThreadStart,arg);
+        filename_char += MAX_PATH;
+    }
+}
 
 
 //******************your code goes here to change or add something****************//
@@ -185,8 +207,9 @@ main(int argc, char **argv)
 {
     int i;
     char *debugArg = "";
-	char* userProgName = NULL;        // default is not to execute a user prog
-    bool threadTestFlag = false;
+	  char userProgName[MAX_PROG][MAX_PATH]= {};     // default is not to execute a user prog
+    int userProgNameSize = 0;
+	  bool threadTestFlag = false;
     bool consoleTestFlag = false;
     bool networkTestFlag = false;
     bool isRandom = false;
@@ -214,8 +237,13 @@ main(int argc, char **argv)
 	}
 	else if (strcmp(argv[i], "-x") == 0) {
 	    ASSERT(i + 1 < argc);
-		userProgName = argv[i + 1];
+		  strcpy(userProgName[userProgNameSize++], argv[i + 1]);
 	    i++;
+	}
+	else if (strcmp(argv[i], "-Q") == 0) {
+	    ASSERT(i + 1 < argc);
+	    TimerTicks = atoi(argv[i + 1]);
+      i++;
 	}
 	else if (strcmp(argv[i], "-K") == 0) {
 	    threadTestFlag = TRUE;
@@ -311,8 +339,10 @@ main(int argc, char **argv)
 #endif // FILESYS_STUB
 
 	// finally, run an initial user program if requested to do so
-	if (userProgName != NULL) {
+	if (userProgNameSize == 1) {
 		RunUserProg(userProgName);
+	} else if (userProgNameSize > 1) {
+	  MultiRunUserProg(userProgName);
 	}
 
     // NOTE: if the procedure "main" returns, then the program "nachos"
