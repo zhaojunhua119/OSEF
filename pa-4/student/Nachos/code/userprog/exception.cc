@@ -81,6 +81,17 @@ void UserThreadStart(int func) {
   kernel->machine->Run();     // jump to the user program
   ASSERT(FALSE);
 }
+void ExecUserThreadStart(int filename) {
+  //printf("##New user level thread starts\n");
+  kernel->currentThread->space->InitRegisters();
+  kernel->currentThread->space->RestoreState();   // load page table register
+  //kernel->machine->WriteRegister(PCReg, func);
+  //kernel->machine->WriteRegister(NextPCReg, func+4);
+  if (kernel->currentThread->space->Load((char*)filename)) {  // load the program into the space
+      kernel->currentThread->space->Execute();         // run the program
+  }
+  ASSERTNOTREACHED();
+}
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -233,6 +244,45 @@ ExceptionHandler(ExceptionType which)
             kernel->machine->WriteRegister(2,0);
             void *arg = (void*)kernel->machine->ReadRegister(PCReg);
             child->Fork((VoidFunctionPtr)UserThreadStart,arg);
+
+            return;
+          }
+        case SC_Exec:
+          {
+            char filename[100];
+            int i=0;
+
+            int vaddr = kernel->machine->ReadRegister(4);
+            int memval = 0;
+            kernel->machine->ReadMem(vaddr, 1, &memval);
+            while ((*(char*)&memval) != '\0') {
+                filename[i]  = (char)memval;
+                ++i;
+                vaddr++;
+                kernel->machine->ReadMem(vaddr, 1, &memval);
+            }
+            filename[i]  = (char)memval;
+            Thread *child = new Thread(filename);
+            AddrSpace *space = new AddrSpace;
+            child->space = space;
+            ASSERT(space != (AddrSpace *)NULL);
+
+            //return pid as the space id
+            kernel->machine->WriteRegister(2,child->pid);
+
+            /* set previous programm counter (debugging only)*/
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+            /* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+
+            /* set next programm counter for brach execution */
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
+            Thread *parent = kernel->currentThread;
+             parent->SaveUserState();
+             child->SaveUserState();
+             void *arg = (void*)filename;
+             child->Fork((VoidFunctionPtr)ExecUserThreadStart,arg);
 
             return;
           }
