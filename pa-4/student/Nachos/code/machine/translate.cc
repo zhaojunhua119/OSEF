@@ -258,7 +258,10 @@ Machine::Translate(int virtAddr, int* physAddr, int size, bool writing)
     DEBUG(dbgAddr, "phys addr = " << *physAddr);
 
     kernel->stats->numPageHit++; 
-
+    for (i = 0; i < NumPhysPages; i++) {
+      lru[i]++;
+    }
+    lru[pageFrame] = 0;
     if (kernel->useTLB == TRUE) {
       UpdateTLB(entry);
     }

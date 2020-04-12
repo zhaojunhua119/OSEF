@@ -15,9 +15,9 @@
 
 #include "copyright.h"
 #include "filesys.h"
-
+#include "BackingStore.h"
 #define UserStackSize		1024 	// increase this as necessary!
-
+typedef struct segment Segment;
 class AddrSpace {
   public:
     AddrSpace();			// Create an address space.
@@ -44,12 +44,16 @@ class AddrSpace {
     TranslationEntry* getPageTable();
     void InitRegisters();   // Initialize user-level CPU registers,
 
+    int pageFault(int vpn);
+    int evictPage(int vpn);
+    void ReadSegment(OpenFile *executable, Segment seg);
+    int pid;
   private:
     TranslationEntry *pageTable;	// Assume linear page table translation
 					// for now!
     unsigned int numPages;		// Number of pages in the virtual 
 					// address space
-
+    BackingStore *backingstore;
     					// before jumping to user code
 
 };

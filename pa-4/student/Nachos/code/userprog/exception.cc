@@ -33,6 +33,7 @@ int strUser2Kernel(char* src, char* dst, int size) {
 	int data;
 	for (int i = 0; i < size; i++) {
 		if (!kernel->machine->ReadMem(virtAddr, sizeof(char), &data))
+		  if (!kernel->machine->ReadMem(virtAddr, sizeof(char), &data))
 				return -1;
 		dst[i] = (char)data;
 		virtAddr++;
@@ -46,10 +47,12 @@ int strKernel2User(char* src, char* dst, int size) {
 	int virtAddr = (int)dst;
 	for (int i = 0; i < size; i++) {
 		if (!kernel->machine->WriteMem(virtAddr, sizeof(char), src[i]))
+		  if (!kernel->machine->WriteMem(virtAddr, sizeof(char), src[i]))
 				return -1;
 		virtAddr++;
 	}
 	if (!kernel->machine->WriteMem(virtAddr, sizeof(char), '\0'))
+	  if (!kernel->machine->WriteMem(virtAddr, sizeof(char), '\0'))
 			return -1;
 	return 0;
 }
@@ -92,6 +95,9 @@ void ExecUserThreadStart(int filename) {
   }
   ASSERTNOTREACHED();
 }
+
+Lock* memoryPagingLock=NULL;
+
 //----------------------------------------------------------------------
 // ExceptionHandler
 // 	Entry point into the Nachos kernel.  Called when a user program
@@ -294,6 +300,18 @@ ExceptionHandler(ExceptionType which)
 	break;
       }
       break;
+    case PageFaultException: // No valid translation found
+    {
+      if (memoryPagingLock == NULL)
+        memoryPagingLock = new Lock("memoryPagingLock");
+
+      int vpn = kernel->machine->ReadRegister(BadVAddrReg) / PageSize;
+
+      memoryPagingLock->Acquire();
+      kernel->currentThread->space->pageFault(vpn);
+      memoryPagingLock->Release();
+      return;
+    }
     default:
       cerr << "Unexpected user mode exception" << (int)which << "\n";
       break;

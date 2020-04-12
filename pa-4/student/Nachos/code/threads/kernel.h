@@ -21,7 +21,7 @@
 #include "bitmap.h"
 #include "list.h"
 #include "hash.h"
-
+#include "MemMgr.h"
 class PostOfficeInput;
 class PostOfficeOutput;
 class SynchConsoleInput;
@@ -61,7 +61,7 @@ class Kernel {
     FileSystem *fileSystem;     
     PostOfficeInput *postOfficeIn;
     PostOfficeOutput *postOfficeOut;
-
+    MemMgr *mm;
     int hostName;               // machine identifier
     OpenFile *swapSpace;
     int swapCounter;

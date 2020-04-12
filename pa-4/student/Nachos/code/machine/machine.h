@@ -157,7 +157,7 @@ class Machine {
     				// Read or write 1, 2, or 4 bytes of virtual 
 				// memory (at addr).  Return FALSE if a 
 				// correct translation couldn't be found.
-
+    int lru[NumPhysPages];
     //bool UpdateTLB(TranslationEntry* from, TranslationEntry* to);
     void UpdateTLB(TranslationEntry* entry);
     void DeleteTLB(TranslationEntry* entry);

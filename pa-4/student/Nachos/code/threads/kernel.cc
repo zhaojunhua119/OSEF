@@ -17,7 +17,7 @@
 #include "synchconsole.h"
 #include "synchdisk.h"
 #include "post.h"
-
+#include "MemMgr.h"
 //----------------------------------------------------------------------
 // Kernel::Kernel
 // 	Interpret command line arguments in order to determine flags 
@@ -107,7 +107,7 @@ Kernel::Initialize(bool israndom, bool usetlb)
     synchConsoleIn = new SynchConsoleInput(consoleIn); // input from stdin
     synchConsoleOut = new SynchConsoleOutput(consoleOut); // output to stdout
     synchDisk = new SynchDisk();    
-
+    mm = new MemMgr(NumPhysPages);
 #ifdef FILESYS_STUB
     fileSystem = new FileSystem();
 #else
@@ -139,6 +139,7 @@ Kernel::~Kernel()
     delete fileSystem;
     delete postOfficeIn;
     delete postOfficeOut;
+    delete mm;
     Exit(0);
 }
 
